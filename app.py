@@ -14,14 +14,22 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 
-# Use /tmp for database on Vercel (writable location)
-tmp = tempfile.mkdtemp()
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{tmp}/complaint_system.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# ===== DATABASE CONFIGURATION =====
+# Check if we're on Vercel with PostgreSQL
+database_url = os.environ.get('POSTGRES_URL')
+if database_url:
+    # Use PostgreSQL on Vercel
+    # Fix for SQLAlchemy 1.4+ (postgres:// → postgresql://)
+    database_url = database_url.replace('postgres://', 'postgresql://')
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    print("✓ Using PostgreSQL database on Vercel")
+else:
+    # Fallback to SQLite for local development
+    tmp = tempfile.mkdtemp()
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{tmp}/complaint_system.db'
+    print("✓ Using SQLite database locally")
 
-# For Vercel - disable file uploads since we can't write to filesystem
-# app.config['UPLOAD_FOLDER'] = '/tmp/uploads'  # Uncomment if you need uploads
-# os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 

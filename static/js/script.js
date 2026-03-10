@@ -137,3 +137,23 @@ $('textarea').on('input', function() {
         }
     }
 });
+
+// Add to your base.html or custom.js
+document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.createElement('div');
+    
+    overlay.className = 'modal-overlay';
+    document.body.appendChild(overlay);
+    
+    menuToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    });
+    
+    overlay.addEventListener('click', function() {
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+    });
+});
