@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Complaint System{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+            overflow-x: hidden;
+        }
+
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(135deg, #1e1e2f 0%, #2d2d4a 100%);
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .logo span,
+        .sidebar.collapsed .nav-link span,
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .sidebar.collapsed .logo {
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .logo i {
+            font-size: 40px;
+            margin: 0;
+        }
+
+        .sidebar .logo {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: left;
+        }
+
+        .sidebar .logo i {
+            font-size: 32px;
+            color: #fff;
+            margin-right: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .sidebar .logo span {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar .user-profile {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sidebar .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .sidebar .user-info h6 {
+            color: #fff;
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .sidebar .user-info p {
+            color: rgba(255,255,255,0.6);
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .sidebar .nav-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            margin: 4px 10px;
+            border-radius: 10px;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar .nav-link span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .menu-toggle:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: #f8f9fa;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .notification-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74a3b;
+            color: white;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .user-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-dropdown:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .user-dropdown img {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        /* Cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .stat-card .stat-icon {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 50px;
+            opacity: 0.2;
+            color: #667eea;
+        }
+
+        .stat-card .stat-label {
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .stat-change {
+            font-size: 13px;
+            color: #10b981;
+        }
+
+        /* Tables */
+        .data-table {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        .data-table table {
+            margin-bottom: 0;
+        }
+
+        .data-table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px;
+            border: none;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.3s;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .data-table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge.bg-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge.bg-progress {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge.bg-resolved {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge.bg-rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge.bg-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge.bg-medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge.bg-low {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        /* Buttons */
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-outline-gradient {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 8px 23px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-outline-gradient:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            border-color: transparent;
+        }
+
+        /* Footer */
+        .footer {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.05);
+        }
+
+        .footer p {
+            margin: 0;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            color: #764ba2;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                left: -280px;
+            }
+            .sidebar.show {
+                left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .main-content.expanded {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stat-card {
+                margin-bottom: 15px;
+            }
+            .top-navbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .navbar-right {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #f0f0f0;
+            padding: 20px;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; justify-content: center; align-items: center;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+            <span>ComplaintPro</span>
+        </div>
+        
+        {% if session.get('user_id') %}
+        <div class="user-profile">
+            <div class="user-avatar">
+                {{ session['full_name'][0] }}
+            </div>
+            <div class="user-info">
+                <h6>{{ session['full_name'] }}</h6>
+                <p>{{ session['role']|title }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="nav-menu">
+            {% block sidebar %}
+            <!-- Sidebar content will be injected here -->
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navbar -->
+        <div class="top-navbar">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="navbar-right">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                </button>
+                
+                <div class="user-dropdown" data-bs-toggle="dropdown">
+                    <div class="user-avatar" style="width: 35px; height: 35px; font-size: 14px;">
+                        {{ session.get('full_name', 'U')[0] }}
+                    </div>
+                    <span>{{ session.get('full_name', 'Guest') }}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user me-2"></i>Profile</a></li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key me-2"></i>Change Password</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p>&copy; 2024 ComplaintPro. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>Made with <i class="fas fa-heart text-danger"></i> by Your Team</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Change Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('change_password') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="current_password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="new_password" class="form-control" id="new_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" name="confirm_password" class="form-control" id="confirm_password" required>
+                            <small class="text-muted" id="passwordMatch"></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-gradient">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // Sidebar Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+
+        // Loading Spinner
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // Show loading on form submit
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', showLoading);
+        });
+
+        // Show loading on link click (except logout and dropdown toggles)
+        document.querySelectorAll('a:not([data-bs-toggle="dropdown"]):not([href*="logout"])').forEach(link => {
+            link.addEventListener('click', showLoading);
+        });
+
+        // Password match checker
+        function checkPasswordMatch() {
+            const newPass = document.getElementById('new_password');
+            const confirmPass = document.getElementById('confirm_password');
+            const matchText = document.getElementById('passwordMatch');
+
+            if (confirmPass.value) {
+                if (newPass.value === confirmPass.value) {
+                    matchText.innerHTML = '✓ Passwords match';
+                    matchText.style.color = 'green';
+                } else {
+                    matchText.innerHTML = '✗ Passwords do not match';
+                    matchText.style.color = 'red';
+                }
+            } else {
+                matchText.innerHTML = '';
+            }
+        }
+
+        document.getElementById('new_password')?.addEventListener('input', checkPasswordMatch);
+        document.getElementById('confirm_password')?.addEventListener('input', checkPasswordMatch);
+
+        // Notification system
+        function checkNotifications() {
+            fetch('/api/notifications/count')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notificationBadge');
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'inline';
+                        
+                        // Play notification sound
+                        // new Audio('/static/sounds/notification.mp3').play();
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                });
+        }
+
+        // Check notifications every 30 seconds
+        setInterval(checkNotifications, 30000);
+
+        // Mobile menu toggle
+        if (window.innerWidth <= 992) {
+            sidebar.classList.remove('collapsed');
+        }
+
+        // Smooth scroll to top
+        document.querySelectorAll('a[href="#top"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

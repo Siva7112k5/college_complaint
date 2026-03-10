@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: fixed;
+            width: 250px;
+            top: 0;
+            left: 0;
+            overflow-y: auto;
+        }
+        .sidebar a {
+            color: white;
+            padding: 15px 20px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(255,255,255,0.2);
+            padding-left: 30px;
+        }
+        .sidebar a i { 
+            margin-right: 10px; 
+            width: 20px;
+            text-align: center;
+        }
+        .main-content { 
+            margin-left: 250px; 
+            padding: 20px;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .quick-actions {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-info {
+            background: #36b9cc;
+            border: none;
+            color: white;
+        }
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(54, 185, 204, 0.4);
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                transition: 0.3s;
+                z-index: 1000;
+            }
+            .sidebar.show {
+                left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="p-3">
+            <h4 class="text-white text-center">Complaint System</h4>
+            <hr class="text-white">
+            <a href="{{ url_for('dashboard') }}" class="active">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{{ url_for('new_complaint') }}">
+                <i class="fas fa-plus-circle"></i> New Complaint
+            </a>
+            <a href="{{ url_for('my_complaints') }}">
+                <i class="fas fa-list"></i> My Complaints
+            </a>
+            <a href="{{ url_for('profile') }}">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="{{ url_for('logout') }}">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Mobile Menu Button -->
+        <button class="btn btn-primary d-md-none mb-3" id="menuToggle">
+            <i class="fas fa-bars"></i> Menu
+        </button>
+
+        <h2>Welcome, {{ session['full_name'] }}! 👋</h2>
+        
+        <!-- Quick Actions - FIXED: Moved outside sidebar -->
+        <div class="quick-actions">
+            <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('new_complaint') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>New Complaint
+                </a>
+                <a href="{{ url_for('my_complaints') }}" class="btn btn-info">
+                    <i class="fas fa-list me-2"></i>View My Complaints
+                </a>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h5 class="text-muted">Total Complaints</h5>
+                    <h2>{{ stats.total }}</h2>
+                    <small class="text-success">All time</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h5 class="text-muted">Pending</h5>
+                    <h2 class="text-warning">{{ stats.pending }}</h2>
+                    <small>Awaiting response</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h5 class="text-muted">In Progress</h5>
+                    <h2 class="text-info">{{ stats.in_progress }}</h2>
+                    <small>Being processed</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h5 class="text-muted">Resolved</h5>
+                    <h2 class="text-success">{{ stats.resolved }}</h2>
+                    <small>Completed</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Complaints -->
+        <div class="card mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Complaints</h5>
+            </div>
+            <div class="card-body">
+                {% if complaints %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for complaint in complaints[:5] %}  <!-- Show only 5 recent -->
+                            <tr>
+                                <td><strong>#{{ complaint.id }}</strong></td>
+                                <td>{{ complaint.title[:30] }}{% if complaint.title|length > 30 %}...{% endif %}</td>
+                                <td>{{ complaint.category }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if complaint.priority == 'High' else 'warning' if complaint.priority == 'Medium' else 'success' }}">
+                                        {{ complaint.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'warning' if complaint.status == 'Pending' else 'info' if complaint.status == 'In Progress' else 'success' }}">
+                                        {{ complaint.status }}
+                                    </span>
+                                </td>
+                                <td>{{ complaint.submitted_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if complaints|length > 5 %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('my_complaints') }}" class="btn btn-outline-primary">
+                        View All Complaints <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No complaints yet</h5>
+                    <p>Click the button below to submit your first complaint</p>
+                    <a href="{{ url_for('new_complaint') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Submit Your First Complaint
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle')?.addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('show');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

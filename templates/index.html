@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint System - Intelligent Grievance Redressal</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-bubbles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-bubbles li {
+            position: absolute;
+            list-style: none;
+            display: block;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            bottom: -160px;
+            animation: square 25s infinite;
+            transition-timing-function: linear;
+            border-radius: 50%;
+        }
+
+        .bg-bubbles li:nth-child(1) {
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            animation-delay: 0s;
+            animation-duration: 20s;
+        }
+
+        .bg-bubbles li:nth-child(2) {
+            left: 20%;
+            width: 40px;
+            height: 40px;
+            animation-delay: 2s;
+            animation-duration: 25s;
+        }
+
+        .bg-bubbles li:nth-child(3) {
+            left: 30%;
+            width: 120px;
+            height: 120px;
+            animation-delay: 4s;
+            animation-duration: 30s;
+        }
+
+        .bg-bubbles li:nth-child(4) {
+            left: 40%;
+            width: 60px;
+            height: 60px;
+            animation-delay: 0s;
+            animation-duration: 22s;
+        }
+
+        .bg-bubbles li:nth-child(5) {
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            animation-delay: 6s;
+            animation-duration: 28s;
+        }
+
+        .bg-bubbles li:nth-child(6) {
+            left: 60%;
+            width: 70px;
+            height: 70px;
+            animation-delay: 3s;
+            animation-duration: 24s;
+        }
+
+        .bg-bubbles li:nth-child(7) {
+            left: 70%;
+            width: 50px;
+            height: 50px;
+            animation-delay: 7s;
+            animation-duration: 26s;
+        }
+
+        .bg-bubbles li:nth-child(8) {
+            left: 80%;
+            width: 90px;
+            height: 90px;
+            animation-delay: 1s;
+            animation-duration: 23s;
+        }
+
+        .bg-bubbles li:nth-child(9) {
+            left: 90%;
+            width: 30px;
+            height: 30px;
+            animation-delay: 5s;
+            animation-duration: 27s;
+        }
+
+        @keyframes square {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-1200px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(0);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .card-header .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 15px rgba(255, 255, 255, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+
+        .card-header h1 {
+            color: white;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            font-weight: 400;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .feature-list {
+            margin-bottom: 30px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: translateX(10px);
+        }
+
+        .feature-item:hover .feature-text,
+        .feature-item:hover .feature-icon {
+            color: white;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover .feature-icon {
+            background: white;
+            color: #667eea;
+        }
+
+        .feature-text {
+            flex: 1;
+            transition: all 0.3s;
+        }
+
+        .feature-text h6 {
+            margin: 0;
+            font-weight: 700;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .feature-text p {
+            margin: 5px 0 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .feature-item:hover .feature-text p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-group-custom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .footer-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .card-header {
+                padding: 30px 20px;
+            }
+
+            .card-header h1 {
+                font-size: 24px;
+            }
+
+            .card-body {
+                padding: 30px 20px;
+            }
+
+            .btn-group-custom {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .feature-item:hover {
+                transform: translateX(5px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-header .icon-wrapper {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+
+            .card-header h1 {
+                font-size: 20px;
+            }
+
+            .feature-item {
+                padding: 8px;
+            }
+
+            .feature-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <ul class="bg-bubbles">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+
+    <div class="container">
+        <div class="col-lg-5 col-md-7" data-aos="fade-up" data-aos-duration="1000">
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h1>Intelligent College Complaint System</h1>
+                    <p>Grievance Redressal Platform</p>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Features List -->
+                    <div class="feature-list">
+                        <div class="feature-item" data-aos="fade-right" data-aos-delay="100">
+                            <div class="feature-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h6>Real-time Tracking</h6>
+                                <p>Track your complaints in real-time with instant updates</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item" data-aos="fade-right" data-aos-delay="200">
+                            <div class="feature-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h6>AI-Powered Categorization</h6>
+                                <p>Smart complaint routing to the right department</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item" data-aos="fade-right" data-aos-delay="300">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h6>Analytics Dashboard</h6>
+                                <p>Data-driven insights for institutional improvement</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item" data-aos="fade-right" data-aos-delay="400">
+                            <div class="feature-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h6>Secure & Anonymous</h6>
+                                <p>Submit complaints anonymously with full security</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="btn-group-custom">
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-2"></i>Register
+                        </a>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="footer-text">
+                        <p>© 2024 Intelligent College Complaint System. All rights reserved.</p>
+                        <p>
+                            <a href="#"><i class="fas fa-info-circle me-1"></i>About</a> |
+                            <a href="#"><i class="fas fa-envelope me-1"></i>Contact</a> |
+                            <a href="#"><i class="fas fa-shield-alt me-1"></i>Privacy</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add animation to features on scroll
+        $(window).scroll(function() {
+            $('.feature-item').each(function() {
+                var elementTop = $(this).offset().top;
+                var viewportTop = $(window).scrollTop();
+                var viewportBottom = viewportTop + $(window).height();
+                
+                if (elementTop < viewportBottom - 100) {
+                    $(this).addClass('animated');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

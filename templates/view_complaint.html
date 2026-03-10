@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Complaint</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: fixed;
+            width: 250px;
+        }
+        .sidebar a {
+            color: white;
+            padding: 15px 20px;
+            text-decoration: none;
+            display: block;
+        }
+        .sidebar a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .main-content { margin-left: 250px; padding: 20px; }
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .priority-high { border-left-color: #dc3545; }
+        .priority-medium { border-left-color: #ffc107; }
+        .priority-low { border-left-color: #28a745; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="p-3">
+            <h4 class="text-white text-center">Complaint System</h4>
+            <hr class="text-white">
+            <a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            {% if session['role'] == 'student' %}
+            <a href="{{ url_for('new_complaint') }}"><i class="fas fa-plus-circle"></i> New Complaint</a>
+            {% endif %}
+            <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a>
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Complaint #{{ complaint.id }}</h2>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back</a>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Complaint Details -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <h4>{{ complaint.title }}</h4>
+                        <p class="text-muted">
+                            Submitted by: 
+                            {% if complaint.anonymous %}
+                                <em>Anonymous</em>
+                            {% else %}
+                                {{ complaint.user.full_name }}
+                            {% endif %}
+                            on {{ complaint.submitted_at.strftime('%Y-%m-%d %H:%M') }}
+                        </p>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <strong>Category:</strong> {{ complaint.category }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Priority:</strong>
+                                <span class="badge bg-{{ 'danger' if complaint.priority == 'High' else 'warning' if complaint.priority == 'Medium' else 'success' }}">
+                                    {{ complaint.priority }}
+                                </span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Status:</strong>
+                                <span class="badge bg-{{ 'warning' if complaint.status == 'Pending' else 'info' if complaint.status == 'In Progress' else 'success' }}">
+                                    {{ complaint.status }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>Description:</h6>
+                        <p>{{ complaint.description }}</p>
+                        
+                        {% if complaint.attachment %}
+                        <hr>
+                        <h6>Attachment:</h6>
+                        <a href="{{ url_for('static', filename='uploads/' + complaint.attachment) }}" target="_blank">
+                            <i class="fas fa-file"></i> {{ complaint.attachment }}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Update Timeline -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Update History</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            {% for update in updates %}
+                            <div class="timeline-item">
+                                <small class="text-muted">{{ update.updated_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                <p class="mb-1">
+                                    Status changed from <strong>{{ update.old_status }}</strong> 
+                                    to <strong>{{ update.new_status }}</strong>
+                                </p>
+                                <p class="mb-0">{{ update.remarks }}</p>
+                                <small>Updated by: {{ update.user.full_name }}</small>
+                            </div>
+                            {% endfor %}
+                            
+                            <!-- Initial submission -->
+                            <div class="timeline-item">
+                                <small class="text-muted">{{ complaint.submitted_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                <p class="mb-0">Complaint submitted</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Update Status (for admin/faculty) -->
+                {% if session['role'] in ['admin', 'faculty'] %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Update Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('update_complaint', complaint_id=complaint.id) }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">New Status</label>
+                                <select name="status" class="form-select" required>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                    <option value="Rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Remarks</label>
+                                <textarea name="remarks" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Update</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Feedback (for student when resolved) -->
+                {% if session['user_id'] == complaint.user_id and complaint.status == 'Resolved' and not complaint.feedback_rating %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Rate Resolution</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('submit_feedback', complaint_id=complaint.id) }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Rating</label>
+                                <select name="rating" class="form-select" required>
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Good</option>
+                                    <option value="3">3 - Average</option>
+                                    <option value="2">2 - Poor</option>
+                                    <option value="1">1 - Very Poor</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Comments</label>
+                                <textarea name="comment" class="form-control" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Submit Feedback</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if complaint.feedback_rating %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Your Feedback</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Rating: {{ complaint.feedback_rating }}/5</p>
+                        {% if complaint.feedback_comment %}
+                        <p>{{ complaint.feedback_comment }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}View User - {{ user.full_name }}{% endblock %}
+
+{% block sidebar %}
+<a href="{{ url_for('dashboard') }}" class="nav-link">
+    <i class="fas fa-tachometer-alt"></i>
+    <span>Dashboard</span>
+</a>
+<a href="{{ url_for('admin_users') }}" class="nav-link active">
+    <i class="fas fa-users"></i>
+    <span>Manage Users</span>
+</a>
+<a href="{{ url_for('admin_complaints') }}" class="nav-link">
+    <i class="fas fa-list"></i>
+    <span>All Complaints</span>
+</a>
+<a href="{{ url_for('profile') }}" class="nav-link">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">User Details</h2>
+            <p class="text-muted">Viewing information for {{ user.full_name }}</p>
+        </div>
+        <a href="{{ url_for('admin_users') }}" class="btn btn-outline-gradient">
+            <i class="fas fa-arrow-left me-2"></i>Back to Users
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- User Info Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="user-avatar-large mb-3">
+                        <div class="avatar-circle" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <span style="font-size: 40px; color: white;">{{ user.full_name[0] }}</span>
+                        </div>
+                    </div>
+                    <h3>{{ user.full_name }}</h3>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    
+                    <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'info' if user.role == 'faculty' else 'success' }} mb-3" style="font-size: 14px; padding: 8px 20px;">
+                        {{ user.role|upper }}
+                    </span>
+                    
+                    <hr>
+                    
+                    <div class="text-start">
+                        <p><i class="fas fa-envelope me-2 text-primary"></i> {{ user.email }}</p>
+                        <p><i class="fas fa-phone me-2 text-primary"></i> {{ user.phone or 'Not provided' }}</p>
+                        <p><i class="fas fa-building me-2 text-primary"></i> {{ user.department or 'Not provided' }}</p>
+                        <p><i class="fas fa-calendar me-2 text-primary"></i> Joined: {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                        <p>
+                            <i class="fas fa-circle me-2 {{ 'text-success' if user.status else 'text-danger' }}"></i>
+                            Status: {{ 'Active' if user.status else 'Inactive' }}
+                        </p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('toggle_user_status', user_id=user.id) }}" 
+                           class="btn btn-{{ 'warning' if user.status else 'success' }}"
+                           onclick="return confirm('Are you sure you want to {{ 'deactivate' if user.status else 'activate' }} this user?')">
+                            <i class="fas fa-{{ 'ban' if user.status else 'check' }} me-2"></i>
+                            {{ 'Deactivate' if user.status else 'Activate' }} User
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Complaints Section -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="mb-0"><i class="fas fa-list me-2 text-primary"></i>User Complaints</h5>
+                </div>
+                <div class="card-body">
+                    {% if complaints %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for complaint in complaints %}
+                                    <tr>
+                                        <td>#{{ complaint.id }}</td>
+                                        <td>{{ complaint.title[:30] }}...</td>
+                                        <td>{{ complaint.category }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ complaint.priority|lower }}">
+                                                {{ complaint.priority }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'pending' if complaint.status == 'Pending' else 'progress' if complaint.status == 'In Progress' else 'resolved' }}">
+                                                {{ complaint.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ complaint.submitted_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}" 
+                                               class="btn btn-sm btn-outline-gradient">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                            <p class="text-muted">No complaints from this user yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

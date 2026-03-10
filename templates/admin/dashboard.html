@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Complaint System{% endblock %}
+
+{% block sidebar %}
+<a href="{{ url_for('dashboard') }}" class="nav-link active">
+    <i class="fas fa-tachometer-alt"></i>
+    <span>Dashboard</span>
+</a>
+<a href="{{ url_for('admin_users') }}" class="nav-link">
+    <i class="fas fa-users"></i>
+    <span>Manage Users</span>
+</a>
+<a href="{{ url_for('admin_complaints') }}" class="nav-link">
+    <i class="fas fa-list"></i>
+    <span>All Complaints</span>
+</a>
+<a href="{{ url_for('profile') }}" class="nav-link">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+        <div>
+            <h2 class="mb-1">Dashboard Overview</h2>
+            <p class="text-muted">Welcome back, {{ session['full_name'] }}! Here's what's happening today.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-gradient" onclick="window.location.reload()">
+                <i class="fas fa-sync-alt me-2"></i>Refresh
+            </button>
+            <button class="btn btn-gradient" onclick="exportReport()">
+                <i class="fas fa-download me-2"></i>Export Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+            <div class="stat-card">
+                <i class="fas fa-users stat-icon"></i>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value">{{ total_users }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-up me-1"></i>+12% this month
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+            <div class="stat-card">
+                <i class="fas fa-ticket-alt stat-icon"></i>
+                <div class="stat-label">Total Complaints</div>
+                <div class="stat-value">{{ total_complaints }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-up me-1"></i>+8% this week
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+            <div class="stat-card">
+                <i class="fas fa-clock stat-icon"></i>
+                <div class="stat-label">Pending</div>
+                <div class="stat-value">{{ pending_complaints }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-down me-1"></i>-5% from yesterday
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
+            <div class="stat-card">
+                <i class="fas fa-check-circle stat-icon"></i>
+                <div class="stat-label">Resolved</div>
+                <div class="stat-value">{{ resolved_complaints }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-up me-1"></i>+23% this month
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-8" data-aos="fade-right">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Complaint Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4" data-aos="fade-left">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2 text-primary"></i>By Category</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Complaints Table -->
+    <div class="data-table" data-aos="fade-up">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0"><i class="fas fa-history me-2 text-primary"></i>Recent Complaints</h5>
+            <a href="{{ url_for('admin_complaints') }}" class="btn btn-gradient btn-sm">
+                View All <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Student</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent_complaints %}
+                        {% for complaint in recent_complaints %}
+                        <tr>
+                            <td><strong>#{{ complaint.id }}</strong></td>
+                            <td>
+                                {% if complaint.anonymous %}
+                                    <em>Anonymous</em>
+                                {% else %}
+                                    {{ complaint.user.full_name }}
+                                {% endif %}
+                            </td>
+                            <td>{{ complaint.title[:30] }}...</td>
+                            <td>{{ complaint.category }}</td>
+                            <td>
+                                <span class="badge bg-{{ complaint.priority|lower }}">
+                                    {{ complaint.priority }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'pending' if complaint.status == 'Pending' else 'progress' if complaint.status == 'In Progress' else 'resolved' }}">
+                                    {{ complaint.status }}
+                                </span>
+                            </td>
+                            <td>{{ complaint.submitted_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}" 
+                                   class="btn btn-sm btn-outline-gradient">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No complaints yet</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="data-table mt-4" data-aos="fade-up">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0"><i class="fas fa-user-plus me-2 text-primary"></i>Recent Users</h5>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-gradient btn-sm">
+                View All <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent_users %}
+                        {% for user in recent_users %}
+                        <tr>
+                            <td>#{{ user.id }}</td>
+                            <td>{{ user.full_name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'info' if user.role == 'faculty' else 'success' }}">
+                                    {{ user.role|upper }}
+                                </span>
+                            </td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if user.status else 'danger' }}">
+                                    {{ 'Active' if user.status else 'Inactive' }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">No users yet</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Trend Chart
+    const ctx1 = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Complaints',
+                data: [12, 19, 15, 17, 14, 18],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Category Chart
+    const ctx2 = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Academic', 'Infrastructure', 'Hostel', 'Other'],
+            datasets: [{
+                data: [30, 25, 20, 25],
+                backgroundColor: ['#667eea', '#764ba2', '#f6c23e', '#1cc88a'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+
+// Export report function
+function exportReport() {
+    // Show loading
+    showLoading();
+    
+    // Simulate export
+    setTimeout(() => {
+        hideLoading();
+        alert('Report exported successfully!');
+    }, 2000);
+}
+</script>
+{% endblock %}

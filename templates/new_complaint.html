@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}New Complaint{% endblock %}
+
+{% block sidebar %}
+<a href="{{ url_for('dashboard') }}" class="nav-link">
+    <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+</a>
+<a href="{{ url_for('new_complaint') }}" class="nav-link active">
+    <i class="fas fa-plus-circle"></i> <span>New Complaint</span>
+</a>
+<a href="#" class="nav-link">
+    <i class="fas fa-list"></i> <span>My Complaints</span>
+</a>
+<a href="{{ url_for('profile') }}" class="nav-link">
+    <i class="fas fa-user"></i> <span>Profile</span>
+</a>
+<a href="{{ url_for('logout') }}" class="nav-link">
+    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-plus-circle me-2"></i>Submit New Complaint</h2>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('new_complaint') }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Title <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control" 
+                                   placeholder="Brief title describing your complaint" required>
+                            <small class="text-muted">Maximum 200 characters</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
+                                <select name="category" class="form-select" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Academic">Academic</option>
+                                    <option value="Administrative">Administrative</option>
+                                    <option value="Infrastructure">Infrastructure</option>
+                                    <option value="Hostel">Hostel</option>
+                                    <option value="Library">Library</option>
+                                    <option value="Examination">Examination</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Student Affairs">Student Affairs</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Priority</label>
+                                <select name="priority" class="form-select">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                                <small class="text-muted">System will auto-adjust based on urgency</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description <span class="text-danger">*</span></label>
+                            <textarea name="description" class="form-control" rows="6" 
+                                      placeholder="Please provide complete details of your complaint..." required></textarea>
+                            <small class="text-muted">Minimum 20 characters</small>
+                            <div class="text-end text-muted" id="charCount">0 characters</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Attachment (Optional)</label>
+                            <input type="file" name="attachment" class="form-control">
+                            <small class="text-muted">Allowed: JPG, PNG, PDF, DOC (Max 5MB)</small>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="anonymous" class="form-check-input" id="anonymous">
+                            <label class="form-check-label" for="anonymous">
+                                Submit Anonymously <i class="fas fa-question-circle" data-bs-toggle="tooltip" 
+                                   title="Your identity will be hidden from others"></i>
+                            </label>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            By submitting this complaint, you agree that the information provided is true to the best of your knowledge.
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Complaint
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-undo me-2"></i>Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Guidelines Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Be clear and specific
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Provide relevant details
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Attach supporting documents
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-circle text-warning me-2"></i>
+                            Avoid personal attacks
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-circle text-warning me-2"></i>
+                            One issue per complaint
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Process Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>What happens next?</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-0">
+                        <li class="mb-2">Complaint is automatically categorized</li>
+                        <li class="mb-2">Assigned to relevant department</li>
+                        <li class="mb-2">You'll receive status updates</li>
+                        <li class="mb-2">Resolution within 3-5 working days</li>
+                        <li>Rate the resolution after closure</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Character counter for description
+document.querySelector('textarea').addEventListener('input', function() {
+    let length = this.value.length;
+    document.getElementById('charCount').textContent = length + ' characters';
+    
+    if(length < 20) {
+        document.getElementById('charCount').classList.add('text-danger');
+    } else {
+        document.getElementById('charCount').classList.remove('text-danger');
+    }
+});
+
+// Auto-categorization based on keywords (optional enhancement)
+document.querySelector('textarea').addEventListener('blur', function() {
+    let text = this.value.toLowerCase();
+    let categorySelect = document.querySelector('select[name="category"]');
+    
+    const keywords = {
+        'Academic': ['teacher', 'faculty', 'class', 'exam', 'study', 'course', 'subject', 'syllabus'],
+        'Infrastructure': ['building', 'room', 'lab', 'fan', 'light', 'ac', 'bench', 'table', 'chair'],
+        'Hostel': ['hostel', 'mess', 'food', 'room', 'warden', 'dormitory'],
+        'Library': ['library', 'book', 'journal', 'reading'],
+        'Finance': ['fee', 'payment', 'money', 'scholarship', 'account'],
+        'Examination': ['exam', 'test', 'result', 'hall ticket', 'grade']
+    };
+    
+    for(let [category, words] of Object.entries(keywords)) {
+        if(words.some(word => text.includes(word))) {
+            categorySelect.value = category;
+            break;
+        }
+    }
+});
+</script>
+{% endblock %}
