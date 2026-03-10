@@ -3,15 +3,25 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 from functools import wraps
+import tempfile
+# For Vercel serverless environment
+import sys
+import logging
+
+# Configure logging for Vercel
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-change-this'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///complaint_system.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 
-# Create upload folder
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Use /tmp for database on Vercel (writable location)
+tmp = tempfile.mkdtemp()
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{tmp}/complaint_system.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# For Vercel - disable file uploads since we can't write to filesystem
+# app.config['UPLOAD_FOLDER'] = '/tmp/uploads'  # Uncomment if you need uploads
+# os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
 
