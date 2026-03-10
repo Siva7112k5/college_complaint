@@ -13,6 +13,12 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 # Create upload folder
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Use environment variable for database URL (Vercel provides a temporary filesystem)
+import tempfile
+tmp = tempfile.mkdtemp()
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{tmp}/complaint_system.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
 
 # Database Models - FIXED relationships
@@ -397,6 +403,9 @@ def init_db():
         print("✓ Users created successfully!")
         print("   Admin: admin / admin123")
         print("   Student: Siva / siva123")
+
+# Call init_db when app starts
+init_db()
 
 if __name__ == '__main__':
     init_db()
